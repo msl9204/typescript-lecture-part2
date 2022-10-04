@@ -1,6 +1,8 @@
-import {applyMiddleware, combineReducers, compose, legacy_createStore as createStore} from "redux";
+import {applyMiddleware, combineReducers, compose, legacy_createStore as createStore, Middleware} from "redux";
 import reducer from "./reducer";
 import {logIn} from "./actions/user";
+import {addPost} from "./actions/post";
+import {ThunkMiddleware} from "redux-thunk";
 
 const loginAction = { type: 'LOGIN'}
 const anyAction = { type: 'example', data: '123' }
@@ -8,17 +10,18 @@ const anyAction = { type: 'example', data: '123' }
 const initialState = {
     user: {
         isLoggingIn: false,
+        loading: false,
         data: null
     },
     posts: [],
 }
 
-const firstMiddleware = () => (next) => (action) => {
+const firstMiddleware: Middleware = (store) => (next) => (action) => {
     console.log('로깅', action)
     next(action)
 }
 
-const thunkMiddleware = (store) => (next) => (action) => {
+const thunkMiddleware: Middleware = (store) => (next) => (action) => {
     if (typeof action === 'function') {
         return action(store.dispatch, store.getState);
     }
@@ -27,7 +30,7 @@ const thunkMiddleware = (store) => (next) => (action) => {
 
 const enhancer = applyMiddleware(
     firstMiddleware,
-    thunkMiddleware
+    thunkMiddleware as ThunkMiddleware
 )
 
 const store = createStore(reducer, initialState, enhancer)
@@ -35,7 +38,11 @@ const store = createStore(reducer, initialState, enhancer)
 console.log('1st', store.getState());
 
 store.dispatch(logIn({
-    id: 1,
-    name: 'zerocho',
-    admin: true
+    nickname: 'zerocho',
+    password: 'qwer1234'
+}))
+
+store.dispatch(addPost({
+    title: '제목',
+    content: '두번째 리덕스'
 }))
