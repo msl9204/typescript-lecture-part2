@@ -1,4 +1,6 @@
-import {combineReducers, compose, legacy_createStore as createStore} from "redux";
+import {applyMiddleware, combineReducers, compose, legacy_createStore as createStore} from "redux";
+import reducer from "./reducer";
+import {logIn} from "./actions/user";
 
 const loginAction = { type: 'LOGIN'}
 const anyAction = { type: 'example', data: '123' }
@@ -11,32 +13,29 @@ const initialState = {
     posts: [],
 }
 
-const reducer = combineReducers({
-    user: (state, action) => {
-        switch (action.type) {
-            case 'LOGIN':
-                return {
-                    isLoggingIn: true,
-                    data: {
-                        nickname: 'zerocho',
-                        password: '1234'
-                    }
-                }
-            default:
-                return state
-        }
+const firstMiddleware = () => (next) => (action) => {
+    console.log('로깅', action)
+    next(action)
+}
 
-    },
-    posts: (state, action) => {
-        switch (action.type) {
-            case 'ADD_POST':
-                return [...state, action.data]
-            default:
-                return state
-        }
+const thunkMiddleware = (store) => (next) => (action) => {
+    if (typeof action === 'function') {
+        return action(store.dispatch, store.getState);
     }
-})
+    return next(action);
+}
 
-const store = createStore(reducer, initialState)
-store.dispatch({type: 'LOGIN'})
-store.dispatch({type: 'ADD_POST', data: { title:'hello', content: 'redux' }})
+const enhancer = applyMiddleware(
+    firstMiddleware,
+    thunkMiddleware
+)
+
+const store = createStore(reducer, initialState, enhancer)
+
+console.log('1st', store.getState());
+
+store.dispatch(logIn({
+    id: 1,
+    name: 'zerocho',
+    admin: true
+}))
