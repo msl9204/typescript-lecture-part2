@@ -34,6 +34,8 @@ const enhancer = applyMiddleware(
 )
 
 const store = createStore(reducer, initialState, enhancer)
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;
 
 console.log('1st', store.getState());
 
@@ -46,3 +48,5 @@ store.dispatch(addPost({
     title: '제목',
     content: '두번째 리덕스'
 }))
+
+export { store };
